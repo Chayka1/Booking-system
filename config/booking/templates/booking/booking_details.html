@@ -86,15 +86,15 @@
       let currentBarber = barberSelect.value;
 
       fetch(`/api/barbers-for-date/?date=${selectedDate}`)
-          .then(response => response.json())
-          .then(data => {
-              let options = '<option value="">Оберіть барбера</option>';
-              data.barbers.forEach(b => {
-                  options += `<option value="${b.id}" ${b.id == currentBarber ? 'selected' : ''}>${b.name} (${b.position})</option>`;
-              });
-              barberSelect.innerHTML = options;
-              barberField.value = barberSelect.value;
+        .then(response => response.json())
+        .then(data => {
+          let options = '<option value="">Оберіть барбера</option>';
+          data.barbers.forEach(b => {
+            options += `<option value="${b.id}" ${b.id == currentBarber ? 'selected' : ''}>${b.name} (${b.position})</option>`;
           });
+          barberSelect.innerHTML = options;
+          barberField.value = barberSelect.value;
+        });
     }
 
     function fetchServices() {
@@ -103,11 +103,12 @@
       if (!barberId) return;
 
       barberField.value = barberId; 
-
       fetch(`/api/booking/?barber_id=${barberId}`)
         .then(response => response.json())
         .then(data => {
-          serviceSelect.innerHTML += data.services.map(s => `<option value="${s.id}">${s.name} - ${s.price} грн</option>`).join('');
+          serviceSelect.innerHTML += data.services.map(
+            s => `<option value="${s.id}">${s.name} - ${s.price} грн</option>`
+          ).join('');
           updateCalendarDisable(data.workdays);
         });
     }
@@ -150,14 +151,25 @@
       dateField.value = dateInput.value;
       timeField.value = timeSelect.value;
 
-      console.log("Barber ID:", barberField.value);
-      console.log("Service ID:", serviceField.value);
-      console.log("Date:", dateField.value);
-      console.log("Time:", timeField.value);
-
       if (!barberField.value) {
-        event.preventDefault(); 
-        alert("Будь ласка, оберіть барбера перед відправкою форми.");
+        event.preventDefault();
+        alert("Будь ласка, оберіть барбера перед записом.");
+        return;
+      }
+      if (!serviceField.value) {
+        event.preventDefault();
+        alert("Будь ласка, оберіть послугу перед записом.");
+        return;
+      }
+      if (!dateField.value) {
+        event.preventDefault();
+        alert("Будь ласка, оберіть дату перед записом.");
+        return;
+      }
+      if (!timeField.value) {
+        event.preventDefault();
+        alert("Будь ласка, оберіть час перед записом.");
+        return;
       }
     });
   </script>

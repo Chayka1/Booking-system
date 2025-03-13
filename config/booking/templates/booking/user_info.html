@@ -17,7 +17,7 @@
           height: 100vh;
           margin: 0;
         }
-      </style>
+    </style>
 </head>
 <body>
     <div class="container">
@@ -47,23 +47,23 @@
             }
             
             const phoneInput = document.getElementById('id_phone');
+            let isEditing = false;
+            
             if (phoneInput) {
                 phoneInput.setAttribute('placeholder', '+380-(63)-547-81-77');
-                phoneInput.setAttribute('title', 'Формат телефону: +380-(XX)-XXX-XX-XX (10 цифр)');
                 phoneInput.setAttribute('maxlength', '19');
                 phoneInput.classList.add('form-control');
-                
-                let isEditing = false;
-                
+
                 phoneInput.addEventListener('focus', function() {
-                    if (!isEditing) {
+                    if (!isEditing && phoneInput.value === '') {
                         phoneInput.value = '+380-';
                     }
                 });
-                
+
                 phoneInput.addEventListener('input', function() {
                     isEditing = true;
                     let digits = phoneInput.value.replace(/\D/g, '');
+                    
                     if (!digits.startsWith('380')) {
                         digits = '380';
                     }
@@ -76,7 +76,7 @@
                     let chunk3 = digits.slice(8, 10);
                     let chunk4 = digits.slice(10, 12);
                     
-                    let formatted = `+380`;
+                    let formatted = '+380';
                     if (chunk1) formatted += `-(${chunk1})`;
                     if (chunk2) formatted += `-${chunk2}`;
                     if (chunk3) formatted += `-${chunk3}`;
@@ -84,18 +84,24 @@
                     
                     phoneInput.value = formatted;
                 });
-                
+
                 phoneInput.addEventListener('blur', function() {
                     if (phoneInput.value === '+380-') {
                         phoneInput.value = '';
                         isEditing = false;
                     }
                 });
-                
+
                 const form = document.getElementById('userForm');
-                form.addEventListener('submit', function() {
+                form.addEventListener('submit', function(event) {
                     let digitsOnly = phoneInput.value.replace(/\D/g, '');
-                    phoneInput.value = digitsOnly;
+
+                    if (digitsOnly.length !== 12) {
+                        event.preventDefault();
+                        alert("Вкажіть коректний номер телефону!");
+                    } else {
+                        phoneInput.value = digitsOnly;
+                    }
                 });
             }
         });
