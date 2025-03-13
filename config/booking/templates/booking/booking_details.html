@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Запис до барбера</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/flatpickr.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/flatpickr.min.js"></script>
+  {% load static %}
+  <link rel="stylesheet" href="{% static 'css/style.css' %}">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: url("{% static 'images/Background.png' %}") no-repeat center center fixed;
+      background-size: cover;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    {% include 'booking/header.html' %}
+    <h1>Запишіться на послугу</h1>
+    <form method="post" id="bookingForm">
+      {% csrf_token %}
+      
+      <select id="barberSelect" name="barber">
+        <option value="">Оберіть барбера</option>
+        {% for b in barbers %}
+            <option value="{{ b.id }}">{{ b.name }} ({{ b.position.title }})</option>
+        {% endfor %}
+      </select>    
+
+      <input type="text" id="dateInput" placeholder="Оберіть дату">
+
+      <select id="serviceSelect">
+        <option value="">Оберіть послугу</option>
+      </select>
+
+      <select id="timeSelect">
+        <option value="">Оберіть час</option>
+      </select>
+
+      <input type="hidden" name="barber" id="barberField">
+      <input type="hidden" name="service" id="serviceField">
+      <input type="hidden" name="date" id="dateField">
+      <input type="hidden" name="time" id="timeField">
+
+      <button type="submit">Підтвердити</button>
+    </form>
+  </div>
+
+  <script>
+    const barberSelect = document.getElementById('barberSelect');
+    const dateInput = document.getElementById('dateInput');
+    const serviceSelect = document.getElementById('serviceSelect');
+    const timeSelect = document.getElementById('timeSelect');
+    const barberField = document.getElementById('barberField');
+    const serviceField = document.getElementById('serviceField');
+    const dateField = document.getElementById('dateField');
+    const timeField = document.getElementById('timeField');
+
+    let fp = flatpickr(dateInput, {
+      dateFormat: 'Y-m-d',
+      minDate: 'today',
+      disable: []
+    });
+
+    function resetFields() {
+      serviceSelect.innerHTML = '<option value="">Оберіть послугу</option>';
+      timeSelect.innerHTML = '<option value="">Оберіть час</option>';
+      serviceField.value = "";
+      timeField.value = "";
+    }
+
+    function updateCalendarDisable(workdays) {
+      fp.set('disable', [(d) => !workdays.includes((d.getDay() + 6) % 7)]);
+    }
+
+    function fetchAvailableBarbers() {
+      let selectedDate = dateInput.value;
+      let currentBarber = barberSelect.value;
+
+      fetch(`/api/barbers-for-date/?date=${selectedDate}`)
+          .then(response => response.json())
+          .then(data => {
+              let options = '<option value="">Оберіть барбера</option>';
+              data.barbers.forEach(b => {
+                  options += `<option value="${b.id}" ${b.id == currentBarber ? 'selected' : ''}>${b.name} (${b.position})</option>`;
+              });
+              barberSelect.innerHTML = options;
+              barberField.value = barberSelect.value;
+          });
+    }
+
+    function fetchServices() {
+      let barberId = barberSelect.value;
+      resetFields();
+      if (!barberId) return;
+
+      barberField.value = barberId; 
+
+      fetch(`/api/booking/?barber_id=${barberId}`)
+        .then(response => response.json())
+        .then(data => {
+          serviceSelect.innerHTML += data.services.map(s => `<option value="${s.id}">${s.name} - ${s.price} грн</option>`).join('');
+          updateCalendarDisable(data.workdays);
+        });
+    }
+
+    function fetchAvailableTimes() {
+      let barberId = barberSelect.value;
+      let selectedDate = dateInput.value;
+      timeSelect.innerHTML = '<option value="">Оберіть час</option>';
+
+      if (!barberId || !selectedDate) return;
+
+      fetch(`/api/booking/?barber_id=${barberId}&date=${selectedDate}`)
+        .then(response => response.json())
+        .then(data => {
+          timeSelect.innerHTML += data.times.map(t => `<option value="${t}">${t}</option>`).join('');
+        });
+    }
+
+    dateInput.addEventListener('change', () => {
+      fetchAvailableBarbers();
+      fetchAvailableTimes();
+    });
+
+    barberSelect.addEventListener('change', () => {
+      fetchServices();
+      fetchAvailableTimes();
+    });
+
+    serviceSelect.addEventListener('change', () => {
+      serviceField.value = serviceSelect.value;
+    });
+
+    timeSelect.addEventListener('change', () => {
+      timeField.value = timeSelect.value;
+    });
+
+    document.getElementById('bookingForm').addEventListener('submit', (event) => {
+      barberField.value = barberSelect.value;
+      serviceField.value = serviceSelect.value;
+      dateField.value = dateInput.value;
+      timeField.value = timeSelect.value;
+
+      console.log("Barber ID:", barberField.value);
+      console.log("Service ID:", serviceField.value);
+      console.log("Date:", dateField.value);
+      console.log("Time:", timeField.value);
+
+      if (!barberField.value) {
+        event.preventDefault(); 
+        alert("Будь ласка, оберіть барбера перед відправкою форми.");
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Бронювання оформлено!</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/js/all.min.js"></script>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <style>
+        body {
+          font-family: Arial, sans-serif;
+          background: url("{% static 'images/Background.png' %}") no-repeat center center fixed;
+          background-size: cover;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          height: 100vh;
+          margin: 0;
+        }
+      </style>
+</head>
+<body>
+    <div class="container">
+        {% include 'booking/header.html' %}
+        <h1>Бронювання оформлено!💈</h1>
+        <div class="details"><span>Ім'я барбера:</span> <strong>{{ booking.barber.name }} ({{ booking.barber.position.title }})</strong></div>
+        <div class="details"><span>Послуга:</span> <strong>{{ booking.service.name }}</strong></div>
+        <div class="price">Ціна:&nbsp;<strong>{{ booking.price }} грн</strong></div>
+        <div class="details"><span>Дата:</span> <strong>{{ booking.date|date:"d.m.Y" }}</strong></div>
+        <div class="details"><span>Час:</span> <strong>{{ booking.time|time:"H:i" }}</strong></div>
+        
+        <div class="button-container">
+            <button class="btn-circle" onclick="window.location.href='/edit-booking/{{ booking.id }}/'"><i class="fas fa-edit"></i></button>
+            <button class="btn-circle" onclick="deleteBooking({{ booking.id }})"><i class="fas fa-trash"></i></button>
+            <button class="btn-circle" onclick="window.location.href='/'"><i class="fas fa-home"></i></button>
+        </div>
+    </div>
+
+    <script>
+        function deleteBooking(bookingId) {
+            if (confirm("Ви впевнені, що хочете видалити бронювання?")) {
+                fetch(`/delete-booking/${bookingId}/`, {
+                    method: "POST",
+                    headers: {
+                        "X-CSRFToken": "{{ csrf_token }}",
+                        "Content-Type": "application/json"
+                    }
+                }).then(response => {
+                    if (response.ok) {
+                        alert("Бронювання видалене!");
+                        window.location.href = "/";
+                    } else {
+                        alert("Помилка під час видалення бронювання.");
+                    }
+                });
+            }
+        }
+    </script>
+</body>
+</html>

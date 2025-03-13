@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Ваші дані</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css">
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <style>
+        body {
+          font-family: Arial, sans-serif;
+          background: url("{% static 'images/Background.png' %}") no-repeat center center fixed;
+          background-size: cover;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          height: 100vh;
+          margin: 0;
+        }
+      </style>
+</head>
+<body>
+    <div class="container">
+        <form method="post" id="userForm">
+            {% csrf_token %}
+            {% include 'booking/header.html' %}
+            <h2>Введіть ваші дані</h2>
+            {{ form.as_p }}
+            <button type="submit">Далі</button>
+        </form>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const fname = document.getElementById('id_first_name');
+            const lname = document.getElementById('id_last_name');
+            
+            if (fname) {
+                fname.setAttribute('pattern', '[A-Za-zА-Яа-яЁё]+');
+                fname.setAttribute('title', 'Дозволені тільки букви');
+                fname.classList.add('form-control');
+            }
+            if (lname) {
+                lname.setAttribute('pattern', '[A-Za-zА-Яа-яЁё]+');
+                lname.setAttribute('title', 'Дозволені тільки букви');
+                lname.classList.add('form-control');
+            }
+            
+            const phoneInput = document.getElementById('id_phone');
+            if (phoneInput) {
+                phoneInput.setAttribute('placeholder', '+380-(63)-547-81-77');
+                phoneInput.setAttribute('title', 'Формат телефону: +380-(XX)-XXX-XX-XX (10 цифр)');
+                phoneInput.setAttribute('maxlength', '19');
+                phoneInput.classList.add('form-control');
+                
+                let isEditing = false;
+                
+                phoneInput.addEventListener('focus', function() {
+                    if (!isEditing) {
+                        phoneInput.value = '+380-';
+                    }
+                });
+                
+                phoneInput.addEventListener('input', function() {
+                    isEditing = true;
+                    let digits = phoneInput.value.replace(/\D/g, '');
+                    if (!digits.startsWith('380')) {
+                        digits = '380';
+                    }
+                    if (digits.length > 12) {
+                        digits = digits.slice(0, 12);
+                    }
+                    
+                    let chunk1 = digits.slice(3, 5);
+                    let chunk2 = digits.slice(5, 8);
+                    let chunk3 = digits.slice(8, 10);
+                    let chunk4 = digits.slice(10, 12);
+                    
+                    let formatted = `+380`;
+                    if (chunk1) formatted += `-(${chunk1})`;
+                    if (chunk2) formatted += `-${chunk2}`;
+                    if (chunk3) formatted += `-${chunk3}`;
+                    if (chunk4) formatted += `-${chunk4}`;
+                    
+                    phoneInput.value = formatted;
+                });
+                
+                phoneInput.addEventListener('blur', function() {
+                    if (phoneInput.value === '+380-') {
+                        phoneInput.value = '';
+                        isEditing = false;
+                    }
+                });
+                
+                const form = document.getElementById('userForm');
+                form.addEventListener('submit', function() {
+                    let digitsOnly = phoneInput.value.replace(/\D/g, '');
+                    phoneInput.value = digitsOnly;
+                });
+            }
+        });
+    </script>
+</body>
+</html>

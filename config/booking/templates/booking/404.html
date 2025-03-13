@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Страница не найдена</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <style>
+        body {
+            text-align: center;
+            font-family: Arial, sans-serif;
+            padding: 50px;
+        }
+        .error-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        h1 {
+            font-size: 48px;
+            color: #ff0000;
+        }
+        p {
+            font-size: 20px;
+            margin: 20px 0;
+        }
+        img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="error-container">
+        <h1>404 - Такої сторінки не існує</h1>
+        <p>Але зате є милий котик 🐱</p>
+        <img src="{% static 'images/cat.jpg' %}" alt="Котик">
+        <p><a href="/" style="font-size: 18px; color: blue;">Вернуться на главную</a></p>
+    </div>
+</body>
+</html>
